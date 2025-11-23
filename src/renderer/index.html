@@ -6,7 +6,7 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' file: blob:; connect-src 'self' file:;"
     />
 
     <link href="./assets/main.css" type="text/css" rel="stylesheet" />
@@ -16,6 +16,11 @@
    <div class="title-bar">
        <button id="btnOpen" class="mac-btn">📂 打开视频文件</button>
        <button id="btnPlay" class="mac-btn" style="margin-left: 10px;">⏯️ 播放/暂停</button>
+       <select id="playbackRate" class="mac-select" style="margin-left: 10px;">
+           <option value="1">1.0x</option>
+           <option value="1.5" selected>1.5x</option>
+           <option value="2">2.0x</option>
+       </select>
        <span id="fileName">未选择文件</span>
    </div>
 

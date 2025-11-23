@@ -33,6 +33,17 @@ body {
 
 .mac-btn:hover { background: #0062cc; }
 
+.mac-select {
+    -webkit-app-region: no-drag;
+    background: #252525;
+    border: 1px solid #333;
+    color: #eee;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    outline: none;
+}
+
 #fileName {
     margin-left: 15px;
     font-size: 12px;

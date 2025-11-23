@@ -2,11 +2,14 @@ import WaveSurfer from 'wavesurfer.js'
 
 const video = document.getElementById('mainVideo') as HTMLVideoElement
 const btnOpen = document.getElementById('btnOpen') as HTMLButtonElement
+const btnPlay = document.getElementById('btnPlay') as HTMLButtonElement
+const playbackRateSelect = document.getElementById('playbackRate') as HTMLSelectElement
 const fileNameSpan = document.getElementById('fileName') as HTMLSpanElement
 
 // 初始化 WaveSurfer 实例
 const wavesurfer = WaveSurfer.create({
   container: '#waveform',
+  media: video, // 绑定视频元素，自动处理同步
   waveColor: '#4a4a4a', // 未播放部分的波形颜色
   progressColor: '#007aff', // 已播放部分的波形颜色 (macOS 蓝)
   cursorColor: '#ffffff', // 进度条指针颜色
@@ -26,52 +29,37 @@ btnOpen.addEventListener('click', async () => {
   }
 })
 
+// 处理播放/暂停
+btnPlay.addEventListener('click', () => {
+  if (video.paused) {
+    video.play()
+  } else {
+    video.pause()
+  }
+})
+
+// 处理播放速度
+playbackRateSelect.addEventListener('change', () => {
+  const rate = parseFloat(playbackRateSelect.value)
+  video.playbackRate = rate
+  wavesurfer.setPlaybackRate(rate)
+})
+
 function loadMedia(filePath: string): void {
   // 1. 设置视频源
-  video.src = filePath
+  // 使用 file:// 协议并进行编码，确保特殊字符被正确处理
+  const fileUrl = `file://${filePath}`
+  video.src = fileUrl
 
-  // 2. 加载波形图 (Wavesurfer 可以直接读取视频文件中的音频流)
-  wavesurfer.load(filePath)
+  // 设置默认播放速度
+  const defaultRate = parseFloat(playbackRateSelect.value)
+  video.playbackRate = defaultRate
+  wavesurfer.setPlaybackRate(defaultRate)
 
-  // 3. 视频元数据加载完成后
-  video.onloadedmetadata = (): void => {
-    // 重置状态
-    wavesurfer.seekTo(0)
-  }
+  // 2. 加载波形图
+  // 注意：当使用 media 选项时，load 方法只需要 URL 来提取音频数据
+  // 这里的 URL 必须与 video.src 一致或者是同一个文件的有效 URL
+  wavesurfer.load(fileUrl).catch((err) => {
+    console.error('WaveSurfer load error:', err)
+  })
 }
-
-// --- 同步逻辑：视频 <-> 波形图 ---
-
-// 1. 当用户点击/拖拽波形图时 -> 跳转视频
-wavesurfer.on('interaction', (newTime) => {
-  video.currentTime = newTime
-})
-
-// 2. 当用户点击波形图播放/暂停时
-wavesurfer.on('play', () => video.play())
-wavesurfer.on('pause', () => video.pause())
-
-// 3. 视频播放时 -> 更新波形图光标
-// 注意：不要在 timeupdate 里频繁调用 wavesurfer.seekTo，会卡顿
-// 我们只需要处理视频的播放状态，让 wavesurfer 自己跑，只在需要校准时校准
-
-video.addEventListener('play', () => {
-  wavesurfer.play()
-})
-
-video.addEventListener('pause', () => {
-  wavesurfer.pause()
-})
-
-// 4. 防止声音重叠 (Echo Cancellation)
-// Wavesurfer 默认会播放声音。Video 也会播放声音。
-// 方案：把 Wavesurfer 静音，只把它当作“进度条控制器”和“视觉展示”。
-wavesurfer.setVolume(0)
-
-// 5. 强行校准 (防止长时间播放后音画不同步)
-video.addEventListener('seeking', () => {
-  if (video.duration) {
-    const progress = video.currentTime / video.duration
-    wavesurfer.seekTo(progress)
-  }
-})
