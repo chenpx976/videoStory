@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Electron</title>
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+    />
+
+    <link href="./assets/main.css" type="text/css" rel="stylesheet" />
+  </head>
+
+  <body>
+   <div class="title-bar">
+       <button id="btnOpen" class="mac-btn">📂 打开视频文件</button>
+       <button id="btnPlay" class="mac-btn" style="margin-left: 10px;">⏯️ 播放/暂停</button>
+       <span id="fileName">未选择文件</span>
+   </div>
+
+    <div class="video-section">
+        <video id="mainVideo" playsinline></video>
+    </div>
+
+    <div class="audio-section">
+        <div id="waveform"></div>
+    </div>
+
+    <script type="module" src="./src/renderer.ts"></script>
+  </body>
+</html>

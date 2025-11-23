@@ -1,0 +1,66 @@
+@import './base.css';
+body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #1e1e1e;
+    color: #eee;
+    font-family: -apple-system, sans-serif;
+}
+
+/* 顶部简单的工具栏 */
+.title-bar {
+    height: 40px;
+    background: #252525;
+    display: flex;
+    align-items: center;
+    padding-left: 80px; /* 避开 macOS 红绿灯区域 */
+    border-bottom: 1px solid #333;
+    -webkit-app-region: drag; /* 允许拖拽窗口 */
+}
+
+.mac-btn {
+    -webkit-app-region: no-drag;
+    background: #007aff;
+    border: none;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.mac-btn:hover { background: #0062cc; }
+
+#fileName {
+    margin-left: 15px;
+    font-size: 12px;
+    color: #888;
+}
+
+/* 视频区域：自适应剩余高度 */
+.video-section {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+    overflow: hidden;
+}
+
+video {
+    max-width: 100%;
+    max-height: 100%;
+    /* 去掉默认控件，我们将用波形图来控制进度 */
+    pointer-events: none;
+}
+
+/* 底部波形区域：固定高度 */
+.audio-section {
+    height: 100px; /* 波形图高度 */
+    background: #2d2d2d;
+    border-top: 1px solid #3e3e3e;
+    position: relative;
+    padding: 10px 0;
+}
