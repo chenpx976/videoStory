@@ -49,9 +49,29 @@ function initArtPlayer(url: string): void {
   art.playbackRate = 1.5
 
   // 初始化 WaveSurfer
-  initWaveSurfer(art.video, url)
+  initWaveSurfer(url)
 
-  // 监听播放速度变化，同步给 WaveSurfer
+  // --- 绑定 ArtPlayer 和 WaveSurfer 的联动 ---
+
+  // 1. 播放/暂停同步
+  art.on('play', () => wavesurfer?.play())
+  art.on('pause', () => wavesurfer?.pause())
+
+  // 2. 进度同步 (防止漂移)
+  art.on('video:timeupdate', () => {
+    if (!wavesurfer) return
+    // 如果误差超过 0.1 秒，则强制同步
+    if (Math.abs(wavesurfer.getCurrentTime() - art!.currentTime) > 0.1) {
+      wavesurfer.setTime(art!.currentTime)
+    }
+  })
+
+  // 3. 拖拽/跳转同步
+  art.on('seek', (time) => {
+    wavesurfer?.setTime(time)
+  })
+
+  // 4. 倍速同步
   art.on('video:ratechange', () => {
       if (wavesurfer && art) {
           wavesurfer.setPlaybackRate(art.playbackRate)
@@ -59,22 +79,30 @@ function initArtPlayer(url: string): void {
   })
 }
 
-function initWaveSurfer(videoElement: HTMLVideoElement, url: string): void {
+function initWaveSurfer(url: string): void {
   if (wavesurfer) {
     wavesurfer.destroy()
   }
 
   wavesurfer = WaveSurfer.create({
     container: '#waveform',
-    media: videoElement, // 绑定视频元素，自动处理同步
-    waveColor: '#4a4a4a', // 未播放部分的波形颜色
-    progressColor: '#007aff', // 已播放部分的波形颜色 (macOS 蓝)
-    cursorColor: '#ffffff', // 进度条指针颜色
-    height: 80, // 波形高度
-    barWidth: 2, // 波形条宽度（像 Soundcloud 风格）
+    waveColor: '#4a4a4a',
+    progressColor: '#007aff',
+    cursorColor: '#ffffff',
+    height: 80,
+    barWidth: 2,
     barGap: 1,
-    normalize: true, // 归一化音量，让波形看起来更饱满
-    backend: 'MediaElement' // 使用 MediaElement 后端，避免 Web Audio API 的一些问题
+    normalize: true,
+  })
+
+  // 纯粹绘制波形，不输出音频
+  wavesurfer.setVolume(0)
+
+  // 点击波形图跳转视频进度
+  wavesurfer.on('interaction', (newTime) => {
+    if (art) {
+        art.seek = newTime
+    }
   })
 
   wavesurfer.load(url).catch((err) => {
