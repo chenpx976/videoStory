@@ -15,17 +15,11 @@
   <body>
    <div class="title-bar">
        <button id="btnOpen" class="mac-btn">📂 打开视频文件</button>
-       <button id="btnPlay" class="mac-btn" style="margin-left: 10px;">⏯️ 播放/暂停</button>
-       <select id="playbackRate" class="mac-select" style="margin-left: 10px;">
-           <option value="1">1.0x</option>
-           <option value="1.5" selected>1.5x</option>
-           <option value="2">2.0x</option>
-       </select>
        <span id="fileName">未选择文件</span>
    </div>
 
     <div class="video-section">
-        <video id="mainVideo" playsinline></video>
+        <div id="artplayer-app"></div>
     </div>
 
     <div class="audio-section">
