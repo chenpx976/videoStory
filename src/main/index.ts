@@ -3,10 +3,45 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { spawn } from 'child_process'
-import ffmpegPath from 'ffmpeg-static'
 import { createHash } from 'crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
+
+// 获取 ffmpeg 路径（兼容开发和打包环境）
+const getFFmpegPath = async (): Promise<string | null> => {
+  try {
+    // 开发环境
+    if (is.dev) {
+      const ffmpegStatic = await import('ffmpeg-static')
+      return ffmpegStatic.default
+    }
+
+    // 打包环境：ffmpeg 被解压到 app.asar.unpacked 中
+    const basePath = process.resourcesPath
+    const platform = process.platform
+
+    let ffmpegRelativePath: string
+    if (platform === 'darwin') {
+      ffmpegRelativePath = 'app.asar.unpacked/node_modules/ffmpeg-static/ffmpeg'
+    } else if (platform === 'win32') {
+      ffmpegRelativePath = 'app.asar.unpacked/node_modules/ffmpeg-static/ffmpeg.exe'
+    } else {
+      ffmpegRelativePath = 'app.asar.unpacked/node_modules/ffmpeg-static/ffmpeg'
+    }
+
+    const ffmpegPath = join(basePath, ffmpegRelativePath)
+
+    if (existsSync(ffmpegPath)) {
+      return ffmpegPath
+    }
+
+    console.error('FFmpeg not found at:', ffmpegPath)
+    return null
+  } catch (err) {
+    console.error('Error getting FFmpeg path:', err)
+    return null
+  }
+}
 
 function createWindow(): void {
   // Create the browser window.
@@ -120,13 +155,14 @@ app.whenReady().then(() => {
         return { success: true, data: cached, fromCache: true }
       }
 
+      // 获取 FFmpeg 路径
+      const ffmpegPath = await getFFmpegPath()
+      if (!ffmpegPath) {
+        return { success: false, error: 'FFmpeg not found' }
+      }
+
       // 使用 FFmpeg 提取音频数据
       return new Promise((resolve, reject) => {
-        if (!ffmpegPath) {
-          reject(new Error('FFmpeg not found'))
-          return
-        }
-
         const args = [
           '-i', filePath,
           '-ac', channels.toString(),  // 设置声道数

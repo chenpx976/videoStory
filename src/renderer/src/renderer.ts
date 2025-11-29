@@ -122,6 +122,9 @@ function initWaveSurferWithPeaks(waveformData: WaveformData): void {
     wavesurfer.destroy()
   }
 
+  // 重置缩放级别
+  currentZoom = 1
+
   wavesurfer = WaveSurfer.create({
     container: '#waveform',
     waveColor: '#4a4a4a',
