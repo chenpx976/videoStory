@@ -181,8 +181,14 @@ function initWaveSurferWithPeaks(waveformData: WaveformData): void {
 
 // 初始化 ArtPlayer
 async function initArtPlayer(filePath: string, url: string): Promise<void> {
+  // 先销毁旧的播放器和波形图
   if (art) {
     art.destroy(false)
+  }
+
+  if (wavesurfer) {
+    wavesurfer.destroy()
+    wavesurfer = null
   }
 
   art = new Artplayer({
