@@ -24,6 +24,10 @@
 
     <div class="audio-section">
         <div id="waveform"></div>
+        <div id="waveform-loading" style="display: none; padding: 10px; text-align: center; color: #666;">
+            <div>正在生成波形数据...</div>
+            <div id="loading-progress" style="margin-top: 5px; font-size: 12px;"></div>
+        </div>
     </div>
 
     <script type="module" src="./src/renderer.ts"></script>
