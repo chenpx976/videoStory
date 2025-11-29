@@ -6,9 +6,14 @@ const btnOpen = document.getElementById('btnOpen') as HTMLButtonElement
 const fileNameSpan = document.getElementById('fileName') as HTMLSpanElement
 const waveformLoadingDiv = document.getElementById('waveform-loading') as HTMLDivElement
 const loadingProgressDiv = document.getElementById('loading-progress') as HTMLDivElement
+const zoomInBtn = document.getElementById('zoomIn') as HTMLButtonElement
+const zoomOutBtn = document.getElementById('zoomOut') as HTMLButtonElement
+const zoomResetBtn = document.getElementById('zoomReset') as HTMLButtonElement
+const zoomLevelSpan = document.getElementById('zoomLevel') as HTMLSpanElement
 
 let art: Artplayer | null = null
 let wavesurfer: WaveSurfer | null = null
+let currentZoom = 1 // 当前缩放级别，1 = 100%, 2 = 200%, 等等
 
 // 提取音频波形数据
 async function extractWaveformData(filePath: string): Promise<WaveformData | null> {
@@ -52,6 +57,65 @@ async function extractWaveformData(filePath: string): Promise<WaveformData | nul
   }
 }
 
+// 更新缩放级别显示
+function updateZoomDisplay(): void {
+  const zoomPercentage = Math.round(currentZoom * 100)
+  zoomLevelSpan.textContent = `${zoomPercentage}%`
+}
+
+// 设置缩放级别
+function setZoom(zoom: number): void {
+  if (!wavesurfer) return
+
+  // 限制缩放范围：50% 到 2000%
+  currentZoom = Math.max(0.5, Math.min(20, zoom))
+
+  // 获取容器宽度和波形总时长
+  const container = document.querySelector('#waveform') as HTMLElement
+  if (!container) return
+
+  const containerWidth = container.clientWidth
+  const duration = wavesurfer.getDuration()
+
+  if (duration === 0) return
+
+  // 计算基准 pxPerSec：让波形正好填充容器
+  const basePxPerSec = containerWidth / duration
+
+  // 应用缩放倍数
+  const minPxPerSec = basePxPerSec * currentZoom
+
+  // 获取当前播放位置
+  const currentTime = wavesurfer.getCurrentTime()
+
+  // 应用缩放
+  wavesurfer.zoom(minPxPerSec)
+
+  // 恢复播放位置（缩放后可能会偏移）
+  setTimeout(() => {
+    if (wavesurfer) {
+      wavesurfer.setTime(currentTime)
+    }
+  }, 10)
+
+  updateZoomDisplay()
+}
+
+// 放大
+function zoomIn(): void {
+  setZoom(currentZoom * 1.2)
+}
+
+// 缩小
+function zoomOut(): void {
+  setZoom(currentZoom / 1.2)
+}
+
+// 重置缩放
+function zoomReset(): void {
+  setZoom(1)
+}
+
 // 使用预提取的波形数据初始化 WaveSurfer
 function initWaveSurferWithPeaks(waveformData: WaveformData): void {
   if (wavesurfer) {
@@ -67,6 +131,7 @@ function initWaveSurferWithPeaks(waveformData: WaveformData): void {
     barWidth: 2,
     barGap: 1,
     normalize: true,
+    // 不设置 minPxPerSec，让波形默认填充整个容器
   })
 
   // 纯粹绘制波形，不输出音频
@@ -82,6 +147,33 @@ function initWaveSurferWithPeaks(waveformData: WaveformData): void {
   // 使用预提取的峰值数据加载波形
   // 创建一个虚拟的音频上下文来设置持续时间
   wavesurfer.load('', [waveformData.peaks], waveformData.duration)
+
+  // 设置缩放按钮事件
+  zoomInBtn.onclick = zoomIn
+  zoomOutBtn.onclick = zoomOut
+  zoomResetBtn.onclick = zoomReset
+
+  // 添加滚轮缩放支持
+  const waveformContainer = document.querySelector('#waveform') as HTMLElement
+  if (waveformContainer) {
+    waveformContainer.addEventListener('wheel', (e: WheelEvent) => {
+      // 只有在按住 Ctrl 或 Command 键时才缩放
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
+
+        if (e.deltaY < 0) {
+          // 滚轮向上 = 放大
+          zoomIn()
+        } else {
+          // 滚轮向下 = 缩小
+          zoomOut()
+        }
+      }
+    }, { passive: false })
+  }
+
+  // 初始化缩放显示
+  updateZoomDisplay()
 }
 
 // 初始化 ArtPlayer

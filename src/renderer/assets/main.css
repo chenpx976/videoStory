@@ -68,9 +68,76 @@ body {
 
 /* 底部波形区域：固定高度 */
 .audio-section {
-    height: 100px; /* 波形图高度 */
+    height: 120px; /* 增加高度以容纳缩放控制 */
     background: #2d2d2d;
     border-top: 1px solid #3e3e3e;
     position: relative;
-    padding: 10px 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 波形缩放控制 */
+.waveform-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: #252525;
+    border-bottom: 1px solid #3e3e3e;
+}
+
+.zoom-btn {
+    background: #333;
+    border: 1px solid #444;
+    color: #eee;
+    padding: 3px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+    min-width: 36px;
+}
+
+.zoom-btn:hover {
+    background: #444;
+    border-color: #555;
+}
+
+.zoom-btn:active {
+    background: #2a2a2a;
+    transform: scale(0.95);
+}
+
+.zoom-level {
+    margin-left: 5px;
+    font-size: 11px;
+    color: #888;
+    min-width: 45px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+#waveform {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* 美化波形滚动条 */
+#waveform::-webkit-scrollbar {
+    height: 8px;
+}
+
+#waveform::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+#waveform::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+#waveform::-webkit-scrollbar-thumb:hover {
+    background: #666;
 }
